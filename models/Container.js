@@ -10,10 +10,10 @@ const ContainerSchema = new mongoose.Schema({
     /**
      * access types:
      * - public: anyone can view
-     * - private: only createdBy can view
+     * - private: only creator can view
      * - restricted: only those with access can view
      */
-    access: {type: String, default: 'private'},
+    access: {type: String, default: 'public'},
     creator: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     canView: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     canEdit: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}]

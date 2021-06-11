@@ -11,7 +11,6 @@ mongoose.connect(process.env.MONGO_URL, {useNewUrlParser: true})
         .then(console.log("Connected to db"))
         .catch(err => console.log("Error connecting to db:", err));
 
-const userRoutes = require('./routes/user');
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
@@ -25,7 +24,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const apiRouter = express.Router();
+const userRoutes = require('./routes/user');
+const containerRoutes = require('./routes/container');
+
 app.use('/api', apiRouter);
-apiRouter.use('/user', userRoutes)
+apiRouter.use('/user', userRoutes);
+apiRouter.use('/container', containerRoutes)
 
 app.listen(3000);

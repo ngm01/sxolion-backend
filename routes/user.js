@@ -51,12 +51,13 @@ userRoutes.post('/login', (req, res, next) => {
             if(err){
                 return res.status(400).json({message: "Error attempting to login user", err});
             }
-            return res.status(200).json({message: "logged in user"})
+            return res.status(200).json({message: "logged in user", _id: user._id})
         })
     })(req, res, next);
 })
 
 userRoutes.post('/logout', (req, res, next)=> {
+    console.log("Logging out user...");
     try {
         req.logout();
         res.status(200).json({message: "logged out successfully"})
@@ -64,17 +65,6 @@ userRoutes.post('/logout', (req, res, next)=> {
         res.status(500).json({message: "Error attempting to logout", err});
     }
 })
-
-// userRoutes.post('/login', (req, res, next) => {
-//     passport.authenticate('local', (nada, user, err)=>{
-//         if(err){
-//             console.log("Error logging in:", err);
-//             res.status(500).json({message: "Error logging in"});
-//         } else {
-//             res.status(200).json({message: "Login successful"});
-//         }
-//     })
-// });
 
 userRoutes.post('/logout');
 
