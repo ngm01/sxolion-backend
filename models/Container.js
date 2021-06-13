@@ -16,7 +16,8 @@ const ContainerSchema = new mongoose.Schema({
     access: {type: String, default: 'public'},
     creator: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     canView: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
-    canEdit: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}]
+    canEdit: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+    tags: [String]
     
 }, {timestamps: true})
 

@@ -48,10 +48,12 @@ userRoutes.post('/login', (req, res, next) => {
             return res.status(404).json({message: "user not found"});
         }
         req.login(user, function(err){
+            console.log("req.login route user obj:", user);
             if(err){
+                console.log("Error attempting to log in user:", err);
                 return res.status(400).json({message: "Error attempting to login user", err});
             }
-            return res.status(200).json({message: "logged in user", _id: user._id})
+            return res.status(200).json({message: "logged in user", user})
         })
     })(req, res, next);
 })
@@ -65,7 +67,5 @@ userRoutes.post('/logout', (req, res, next)=> {
         res.status(500).json({message: "Error attempting to logout", err});
     }
 })
-
-userRoutes.post('/logout');
 
 module.exports = userRoutes;

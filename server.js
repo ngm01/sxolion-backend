@@ -26,9 +26,11 @@ app.use(passport.session());
 const apiRouter = express.Router();
 const userRoutes = require('./routes/user');
 const containerRoutes = require('./routes/container');
+const itemRoutes = require('./routes/item');
 
 app.use('/api', apiRouter);
 apiRouter.use('/user', userRoutes);
-apiRouter.use('/container', containerRoutes)
+apiRouter.use('/container', containerRoutes);
+apiRouter.use('/item', itemRoutes);
 
 app.listen(3000);
