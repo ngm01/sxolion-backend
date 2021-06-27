@@ -38,7 +38,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser((id, done) => {
     User.findById(id, (err, user) => {
-        done(err, {_id: user._id});
+        done(err, {_id: user._id, publicAccount: user.publicAccount});
     });
 });
 

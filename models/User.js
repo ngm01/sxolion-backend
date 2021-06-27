@@ -9,6 +9,9 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String
+    },
+    publicAccount: {
+        type: Boolean, default: true
     }
 })
 

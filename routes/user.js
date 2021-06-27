@@ -58,6 +58,24 @@ userRoutes.post('/login', (req, res, next) => {
     })(req, res, next);
 })
 
+userRoutes.put('/updateSettings', (req, res, next)=> {
+    console.log("Updating user...");
+    if(req.isAuthenticated()){
+        const userId = req.user._id;
+        let {publicAccount} = req.body;
+        User.findOneAndUpdate({_id: userId}, {
+            publicAccount: publicAccount
+        }).exec().then(doc => {
+            console.log("succesfully updated user settings");
+            res.status(200).json({message: "succesfully updated user settings"});
+        }).catch(err => {
+            res.status(500).json({message: "error updating user settings:", err});
+        })
+    } else {
+        res.status(401).json({message: "Not logged in"})
+    }
+})
+
 userRoutes.post('/logout', (req, res, next)=> {
     console.log("Logging out user...");
     try {

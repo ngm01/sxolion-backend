@@ -94,9 +94,10 @@ containerRoutes.get('/:id', (req, res) => {
 // GET: READ all of a user's containers
 // TODO:
 //  - create a 'private' vs 'public' flag on user acct level -- if the user has a private acct, no one can see their containers
-//  - on 'docs' below, filter for public vs private access
 //      - if no public containers on a public acct, display "this user does not have any public containers" msg
+//  - on 'docs' below, filter for public vs private container access
 //      - for private access containers, filter canView list for req.user._id
+//  - another thought: 'access' flag on containers should be changed to publicAccess, type should be boolean
 containerRoutes.get('/all/:userId', (req, res) => {
     let userId = req.params.userId;
     Container.find({creator: userId})
@@ -112,34 +113,64 @@ containerRoutes.get('/all/:userId', (req, res) => {
 })
 
 // PUT: UPDATE a container
+// On the frontend, we should prevent anyone from editing the container who isn't part of the container's canEdit list
+// On the backend, we should still do an isAuthenticated check, and ensure that the user is part of the CURRENT canEdit list
 containerRoutes.put('/:id', (req, res) => {
-    let _id = req.params.id;
-    let {name, description, canEdit, canView, access, photos, tags} = req.body;
-    Container.findOneAndUpdate({_id: _id}, {
-        name: name,
-        description: description,
-        canEdit: canEdit,
-        canView: canView,
-        access: access,
-        photos: photos,
-        tags: tags
-    }, {new: true}).exec().then(doc => {
-        console.log("Updated container:", doc);
-        res.status(200).json({message: "successfully updated container"});
-    }).catch(err => {
-        res.status(500).json({message: "Error updating container:", err});
-    })
+    if(req.isAuthenticated()){
+        let containerId = req.params.id;
+        Container.findById(containerId)
+        .exec()
+        .then(container => {
+            if(container.canEdit.includes(req.user._id)){
+                let {name, description, canEdit, canView, access, photos, tags} = req.body;
+                Container.findOneAndUpdate({_id: containerId}, {
+                    name: name,
+                    description: description,
+                    canEdit: canEdit,
+                    canView: canView,
+                    access: access,
+                    photos: photos,
+                    tags: tags
+                }, {new: true}).exec().then(doc => {
+                    console.log("Updated container:", doc);
+                    res.status(200).json({message: "successfully updated container"});
+                }).catch(err => {
+                    res.status(500).json({message: "Error updating container:", err});
+                })
+            } else {
+                res.status(403).json({message: "you don't have permission to edit this"});
+            }
+        }).catch(err => {
+            res.status(500).json({message: "Error updating container:", err});
+        })
+    } else {
+        res.status(401).json({message: "not logged in"});
+    }
 })
 
 // DELETE: DELETE a container
 containerRoutes.delete('/:id', (req, res) => {
-    let _id = req.params.id;
-    Container.findByIdAndDelete(_id).exec().then(doc => {
-        console.log("Container deleted:", doc)
-        res.status(200).json({message: "Container deleted"});
-    }).catch(err => {
-        res.status(500).json({message: "Error deleting container:", e});
-    })
+    if(req.isAuthenticated()){
+        let containerId = req.params.id;
+        Container.findById(containerId)
+        .exec()
+        .then(container => {
+            if(container.canEdit.includes(req.user._id)){
+                Container.findByIdAndDelete(containerId).exec().then(doc => {
+                    console.log("Container deleted:", doc)
+                    res.status(200).json({message: "Container deleted"});
+                }).catch(err => {
+                    res.status(500).json({message: "Error deleting container:", e});
+                })
+            } else {
+                res.status(403).json({message: "you don't have permission to edit this"});
+            }
+        }).catch(err => {
+            res.status(500).json({message: "Error deleting container:", e});
+        })
+    } else {
+        res.status(401).json({message: "not logged in"});
+    }
 })
 
 module.exports = containerRoutes;
