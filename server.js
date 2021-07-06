@@ -7,7 +7,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const store = new MongoStore({mongooseConnection: mongoose.connection});
 
-mongoose.connect(process.env.MONGO_URL, {useNewUrlParser: true})
+mongoose.connect(process.env.MONGO_URL, {useNewUrlParser: true, useFindAndModify: false })
         .then(console.log("Connected to db"))
         .catch(err => console.log("Error connecting to db:", err));
 

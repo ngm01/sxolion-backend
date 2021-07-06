@@ -19,7 +19,7 @@ const authenticateUser = (email, password, done) => {
                     };
                     if (isMatch) {
                         console.log("Password validated for user", user)
-                        return done(null, {_id: user._id});
+                        return done(null, {_id: user._id, publicAccount: user.publicAccount});
                     } else {
                         return done(null, false, { message: "Wrong password" });
                     }

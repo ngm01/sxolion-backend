@@ -1,6 +1,8 @@
 const express = require('express');
+const { isValidObjectId } = require('mongoose');
 const Container = require('../models/Container');
 const Item = require('../models/Item');
+const ObjectId = require("mongodb").ObjectID;
 
 
 
@@ -70,10 +72,12 @@ containerRoutes.post('', (req, res)=> {
 containerRoutes.get('/:id', (req, res) => {
     if(req.isAuthenticated()){
         let containerId = req.params.id;
+        console.log("Getting container", req.params.id);
         Container.findById(containerId)
         .then(doc => {
+            console.log("Got container", doc);
             if(doc){
-                if(doc.access === 'public' || doc.creator === req.user._id || doc.canView.includes(req.user.id)){
+                if(doc.access === 'public' || doc.creator.equals(req.user._id) || doc.canView.includes(req.user.id)){
                     doc.populate('items').execPopulate().then(doc => {
                         res.status(200).json(doc);
                     })
@@ -121,16 +125,17 @@ containerRoutes.put('/:id', (req, res) => {
         Container.findById(containerId)
         .exec()
         .then(container => {
-            if(container.canEdit.includes(req.user._id)){
+            if(container.creator.equals(req.user._id) || container.canEdit.includes(req.user._id)){
                 let {name, description, canEdit, canView, access, photos, tags} = req.body;
+
                 Container.findOneAndUpdate({_id: containerId}, {
-                    name: name,
-                    description: description,
-                    canEdit: canEdit,
-                    canView: canView,
-                    access: access,
-                    photos: photos,
-                    tags: tags
+                    name: pruneUpdate(container.name, name),
+                    description: pruneUpdate(container.description, description),
+                    canEdit: pruneUpdate(container.canEdit, canEdit),
+                    canView: pruneUpdate(container.canView, canView),
+                    access: pruneUpdate(container.access, access),
+                    photos: pruneUpdate(container.photos, photos),
+                    tags: pruneUpdate(container.tags, tags)
                 }, {new: true}).exec().then(doc => {
                     console.log("Updated container:", doc);
                     res.status(200).json({message: "successfully updated container"});
@@ -146,6 +151,19 @@ containerRoutes.put('/:id', (req, res) => {
     } else {
         res.status(401).json({message: "not logged in"});
     }
+
+    // remove null values, dupes
+    function pruneUpdate(oldValue, newValue){
+        if(oldValue === null || oldValue === newValue) return oldValue;
+        if(ObjectId.isValid(newValue)){
+            if(oldValue.equals(newValue)) {
+                return oldValue;
+            } else {
+                return newValue;
+            }
+        }
+        return newValue;
+    }
 })
 
 // DELETE: DELETE a container
@@ -155,18 +173,19 @@ containerRoutes.delete('/:id', (req, res) => {
         Container.findById(containerId)
         .exec()
         .then(container => {
-            if(container.canEdit.includes(req.user._id)){
+            console.log("Found container", container);
+            if(container.creator.equals(req.user._id) || container.canEdit.includes(req.user._id)){
                 Container.findByIdAndDelete(containerId).exec().then(doc => {
                     console.log("Container deleted:", doc)
                     res.status(200).json({message: "Container deleted"});
                 }).catch(err => {
-                    res.status(500).json({message: "Error deleting container:", e});
+                    res.status(500).json({message: "Error deleting container:", err});
                 })
             } else {
                 res.status(403).json({message: "you don't have permission to edit this"});
             }
         }).catch(err => {
-            res.status(500).json({message: "Error deleting container:", e});
+            res.status(500).json({message: "Error retrieving container:", err});
         })
     } else {
         res.status(401).json({message: "not logged in"});
